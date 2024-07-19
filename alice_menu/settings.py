@@ -56,7 +56,7 @@ ROOT_URLCONF = 'alice_menu.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, "templates")],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -160,7 +160,7 @@ CORS_ALLOW_CREDENTIALS = True
 # settings.py
 
 AUTHENTICATION_BACKENDS = [
-    'user.authentication.CustomAuthBackend',
+    # 'user.authentication.CustomAuthBackend',
     'django.contrib.auth.backends.ModelBackend',  # Default authentication backend
 ]
 
@@ -178,3 +178,8 @@ SIMPLE_JWT = {
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'TOKEN_TYPE_CLAIM': 'token_type',
 }
+
+# settings.py
+
+# Set your desired redirect URL after login
+LOGIN_REDIRECT_URL = '/'

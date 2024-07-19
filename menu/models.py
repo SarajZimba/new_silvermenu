@@ -29,8 +29,8 @@ class Menu(BaseModel):
     is_todayspecial = models.BooleanField(default=False)
     thumbnail = models.ImageField(upload_to='thumbnails/', blank=True, null=True)
     image_bytes = models.TextField(null=True, blank=True)
-    category = models.ForeignKey(
-        MenuType, on_delete=models.CASCADE
+    menutype = models.ForeignKey(
+        MenuType, on_delete=models.CASCADE, null=True, blank=True
     )
     
 

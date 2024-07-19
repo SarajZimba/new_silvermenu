@@ -4,6 +4,8 @@ from rest_framework import serializers
 import base64
 from django.core.files.base import ContentFile
 
+from menu.models import MenuType
+
 class MenuSerializerCreate(ModelSerializer):
 
     class Meta:
@@ -57,3 +59,18 @@ class MenuSerializerList(ModelSerializer):
 
     def get_image_url(self, obj):
         return str("api/" + obj.item_name)
+    
+class MenuTypeSerializerList(ModelSerializer):
+        products = MenuSerializerList(source='menu_set', many=True, read_only=True) 
+        class Meta:       
+            model = MenuType
+            exclude = [
+                "created_at",
+                "updated_at",
+                "status",
+                "is_deleted",
+                "sorting_order",
+                "is_featured"
+            ]
+
+

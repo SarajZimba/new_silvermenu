@@ -1,6 +1,7 @@
 from django.db import models
 from alice_menu.utils import BaseModel
 import json
+from user.models import Customer
 # Create your models here.
 
 class Order(BaseModel):
@@ -17,6 +18,7 @@ class Order(BaseModel):
     outlet = models.CharField(max_length = 100, null=True)
     accepted_time = models.CharField(max_length=100, null=True)
     outlet_order = models.IntegerField(null=True)
+    customer = models.ForeignKey(Customer, models.CASCADE, null=True, blank=True)
 
 
 class OrderDetails(BaseModel):

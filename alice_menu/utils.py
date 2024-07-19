@@ -1,4 +1,5 @@
 from django.db import models
+from django.http import JsonResponse
 
 
 class Manger(models.Manager):
@@ -25,3 +26,20 @@ class BaseModel(models.Model):
     class Meta:
         abstract = True
         ordering = ["-created_at"]
+
+class DeleteMixin:
+    def remove_from_DB(self, request):
+        try:
+            object_id = request.GET.get("pk", None)
+            object = self.model.objects.get(id=object_id)
+            object.is_deleted = True
+            object.save()
+
+            return True
+        except Exception as e:
+            print(e)
+            return str(e)
+
+    def get(self, request):
+        status = self.remove_from_DB(request)
+        return JsonResponse({"deleted": status})

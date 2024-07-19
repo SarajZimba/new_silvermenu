@@ -1,26 +1,33 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from menu.models import Menu
-from api.serializers.menu import MenuSerializerCreate, MenuSerializerList
+from api.serializers.menu import MenuSerializerCreate, MenuSerializerList, MenuTypeSerializerList
+from menu.models import MenuType
 
 class MenuTypeWiseListView(APIView):
     def get(self, request, *args, **kwargs):
         outlet_name = kwargs.get('outlet_name')
 
-        promotional_menus = Menu.objects.filter(status=True,is_deleted=False, outlet=outlet_name, is_promotional=True)[:5]
-        todayspecial_menus = Menu.objects.filter(status=True,is_deleted=False, outlet=outlet_name, is_todayspecial=True)[:5]
-        try:    
-            promotional_serializer = MenuSerializerList(promotional_menus, many=True)
-            todayspecial_serializer = MenuSerializerList(todayspecial_menus, many=True)
-            data = {
-                "promotional": promotional_serializer.data,
-                "todayspecial": todayspecial_serializer.data
-            }
-            return Response(data, 200)
+        menutypes = MenuType.objects.filter(is_deleted=False, status=True)
 
-        except Exception as e:
-            print(e)
-            return Response("Something went wrong", 400)
+        menutypeswithmenus = MenuTypeSerializerList(menutypes, many=True)
+
+        return Response(menutypeswithmenus.data, 200)
+
+        # promotional_menus = Menu.objects.filter(status=True,is_deleted=False, outlet=outlet_name, is_promotional=True)[:5]
+        # todayspecial_menus = Menu.objects.filter(status=True,is_deleted=False, outlet=outlet_name, is_todayspecial=True)[:5]
+        # try:    
+        #     promotional_serializer = MenuSerializerList(promotional_menus, many=True)
+        #     todayspecial_serializer = MenuSerializerList(todayspecial_menus, many=True)
+        #     data = {
+        #         "promotional": promotional_serializer.data,
+        #         "todayspecial": todayspecial_serializer.data
+        #     }
+        #     return Response(data, 200)
+
+        # except Exception as e:
+        #     print(e)
+        #     return Response("Something went wrong", 400)
         
 class MenuListView(APIView):
     def get(self, request, *args, **kwargs):

@@ -175,6 +175,17 @@ class OrderSessionTotal(APIView):
         total_items = OrderDetails.objects.filter(order__in=orders).count()
         vat = total_amount * Decimal(0.13)
 
+        if orders:
+            print("orders", orders)
+            first_order = orders.first()
+            first_order_startdate = first_order.date
+            startdate_str = first_order_startdate.strftime('%Y-%m-%d')
+            startdatetime_str = startdate_str + " " + first_order.start_time
+            customer_name = first_order.customer.name if first_order.customer else ""
+        else:
+            startdatetime_str = ""
+            customer_name = ""
+
         grand_total = total_amount + vat
 
         order_dict = {
@@ -184,8 +195,11 @@ class OrderSessionTotal(APIView):
             "vat" : round(vat, 2),
             "grand_total": round(grand_total, 2),
             "total_quantity": total_quantity,
-            "total_items": total_items
-    
+            "total_items": total_items,
+            "start_datetime": startdatetime_str,
+            "table_no": table_no,
+            "customer_name" : customer_name
+
 
         }
 
