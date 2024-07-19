@@ -11,3 +11,4 @@ def check_email_in_normal(email):
         return True #means already email associated with another account
     else:
         return False 
+    

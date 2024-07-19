@@ -10,7 +10,6 @@ class Menu(BaseModel):
     # item_name, group, type, price, d_exempt, restaurant/outlet, image, is_promotional, is_today-special
     item_name = models.CharField(max_length=255)
     slug = models.SlugField(verbose_name="Product Slug", null=True)
-
     group = models.CharField(max_length=255)   
     type = models.CharField(max_length=255)
     price = models.FloatField(default=0.0)
@@ -36,7 +35,7 @@ class Menu(BaseModel):
             image.thumbnail(thumbnail_size)
             thumbnail_io = BytesIO()
             image.save(thumbnail_io, format='PNG')
-            thumbnail_file = InMemoryUploadedFile(thumbnail_io, None, self.image.name.split('.')[0] + '_thumbnail.jpg', 'image/jpeg', thumbnail_io.tell(), None)
+            thumbnail_file = InMemoryUploadedFile(thumbnail_io, None, self.thumbnail.name.split('.')[0] + '_thumbnail.jpg', 'image/jpeg', thumbnail_io.tell(), None)
             thumbnail_file.seek(0)
             return thumbnail_file
         else:
