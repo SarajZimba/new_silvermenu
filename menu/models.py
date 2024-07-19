@@ -6,6 +6,16 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.utils.text import slugify
 # Create your models here.
 
+class MenuType(BaseModel):
+    title = models.CharField(max_length=255, verbose_name="MenuType Title", unique=True)
+    slug = models.SlugField(verbose_name="MenuType Slug", null=True)
+    description = models.TextField(
+        verbose_name="MenuType Description", null=True, blank=True
+    )
+
+    def __str__(self):
+        return self.title
+
 class Menu(BaseModel):
     # item_name, group, type, price, d_exempt, restaurant/outlet, image, is_promotional, is_today-special
     item_name = models.CharField(max_length=255)
@@ -19,6 +29,10 @@ class Menu(BaseModel):
     is_todayspecial = models.BooleanField(default=False)
     thumbnail = models.ImageField(upload_to='thumbnails/', blank=True, null=True)
     image_bytes = models.TextField(null=True, blank=True)
+    category = models.ForeignKey(
+        MenuType, on_delete=models.CASCADE
+    )
+    
 
     def save(self, *args, **kwargs):
         self.thumbnail = self.generate_thumbnail()

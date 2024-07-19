@@ -25,7 +25,7 @@ class OrderDetails(BaseModel):
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     currentState = models.CharField(max_length=20, null=True)
     quantity = models.IntegerField(null=True)
-    modification = models.CharField(max_length=200, null=True)
+    modification = models.CharField(max_length=200, null=True, blank=True)
 
 
 from django.db.models.signals import post_save
