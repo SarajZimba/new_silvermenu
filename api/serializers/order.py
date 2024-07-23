@@ -68,3 +68,18 @@ class CustomOrderWithOrderDetailsSerializer(serializers.ModelSerializer):
     
     # def get_tableNumber(self, obj):
     #     return str(obj.table_no) if (obj.orderdetails_set.first() is not None and obj.table_no is not None) else None
+
+from order.models import BillRequest
+
+class BillRequestSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = BillRequest
+        exclude = [
+            "created_at",
+            "updated_at",
+            "status",
+            "is_deleted",
+            "sorting_order",
+            "is_featured"
+        ]

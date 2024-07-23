@@ -46,6 +46,7 @@ class MenuSerializerCreate(ModelSerializer):
 class MenuSerializerList(ModelSerializer):
     image_url = serializers.SerializerMethodField()
 
+
     class Meta:
         model = Menu
         exclude = [
@@ -59,6 +60,7 @@ class MenuSerializerList(ModelSerializer):
 
     def get_image_url(self, obj):
         return str("api/" + obj.item_name)
+
     
 class MenuTypeSerializerList(ModelSerializer):
         products = MenuSerializerList(source='menu_set', many=True, read_only=True) 
@@ -74,3 +76,27 @@ class MenuTypeSerializerList(ModelSerializer):
             ]
 
 
+class MenuTypeSerializerListOutletWise(serializers.ModelSerializer):
+    products = MenuSerializerList(many=True, read_only=True) 
+
+    class Meta:
+        model = MenuType
+        exclude = [
+            "created_at",
+            "updated_at",
+            "status",
+            "is_deleted",
+            "sorting_order",
+            "is_featured"
+        ]
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        
+        # Serialize the menus related to this MenuType
+        menus = instance.menu_set.filter(outlet=self.context['outlet_name'])
+        serialized_menus = MenuSerializerList(menus, many=True, context=self.context).data
+        
+        representation['products'] = serialized_menus
+        
+        return representation

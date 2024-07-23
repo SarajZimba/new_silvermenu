@@ -69,3 +69,17 @@ class MenuForm(BaseForm, forms.ModelForm):
     #         branch_stock.save()
 
     #     return product
+
+class MenuTypeForm(BaseForm, forms.ModelForm):
+
+    class Meta:
+        model = MenuType
+        fields = "__all__"
+        exclude = [
+            "is_deleted",
+            "status",
+            "deleted_at",
+            "sorting_order",
+            "slug",
+            "is_featured",
+        ]

@@ -103,3 +103,63 @@ def send_delivery_notification(sender, instance, created, **kwargs):
                     print("The token is None")
         else:
             print(f"No active users in the outlet {outlet}")
+
+
+class BillRequest(BaseModel):
+    table_no = models.IntegerField()
+    is_billrequest = models.BooleanField(default=False)
+    is_waitercalling = models.BooleanField(default=False)
+    outlet = models.CharField(max_length = 100, null=True)
+    completed_time = models.CharField(max_length=100, null=True, blank=True)
+    is_completed = models.BooleanField(default=False)
+
+@receiver(post_save, sender=BillRequest)
+def send_delivery_notification(sender, instance, created, **kwargs):
+    print("I am inside")
+    if created:
+        outlet=instance.outlet
+        active_users = UserLogin.objects.filter(outlet=outlet)
+        start_time = instance.created_at.strftime("%Y-%m-%d %H:%M:%S")
+        
+        if active_users:
+            for user in active_users:
+
+                is_billrequest = instance.is_billrequest if instance.is_billrequest else ""
+                billrequest_id = instance.id 
+                table_no = instance.table_no if instance.table_no else ""
+                is_waitercalling = instance.is_waitercalling if instance.is_waitercalling else ""
+                # employee = instance.employee if instance.employee else ""
+                start_time = start_time 
+                token = user.device_token
+                # outlet = instance.outlet if instance.outlet else "" 
+
+                order_dict = {}
+                            
+                if is_billrequest is not None:
+                    order_dict["is_billrequest"] = str(billrequest_id)
+
+                if billrequest_id is not None:
+                    order_dict["billrequest_id"] = str(billrequest_id)
+                                
+                if is_waitercalling is not None:
+                    order_dict["is_waitercalling"] = str(is_waitercalling)
+
+                if table_no is not None:
+                    order_dict["tableNo"] = str(table_no)
+
+                if start_time is not None:
+                    order_dict["start_time"] = str(start_time)
+                final_msg = ""
+                if instance.is_billrequest == True:
+                    final_msg = f"You have a new bill request in {table_no} "
+                if instance.is_waitercalling == True:
+                    final_msg = f"Waiter calling in {table_no}"
+
+                if token is not None or token != '':
+                    print(f"before {order_dict}")
+                    send_notification(token, "New bill request received", final_msg, order_dict)
+                    print(f"after {order_dict}")
+                else:
+                    print("The token is None")
+        else:
+            print(f"No active users in the outlet {outlet}")

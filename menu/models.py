@@ -12,7 +12,6 @@ class MenuType(BaseModel):
     description = models.TextField(
         verbose_name="MenuType Description", null=True, blank=True
     )
-
     def __str__(self):
         return self.title
 
@@ -32,7 +31,24 @@ class Menu(BaseModel):
     menutype = models.ForeignKey(
         MenuType, on_delete=models.CASCADE, null=True, blank=True
     )
+    description =models.TextField(null=True, blank=True)
     
+    rating_choices = (
+        (0.0, '0.0'),
+        (0.5, '0.5'),
+        (1.0, '1'),
+        (1.5, '1.5'),
+        (2.0, '2'),
+        (2.5, '2.5'),
+        (3.0, '3'),
+        (3.5, '3.5'),
+        (4.0, '4'),
+        (4.5, '4.5'),
+        (5.0, '5'),
+    )
+    rating = models.DecimalField(max_digits=2, decimal_places=1, choices=rating_choices, default=0.0, null=True, blank=True)
+    promotional_price = models.FloatField(default=0.0)
+
 
     def save(self, *args, **kwargs):
         self.thumbnail = self.generate_thumbnail()
@@ -56,3 +72,5 @@ class Menu(BaseModel):
             return None
         
 
+class FlagMenu(models.Model):
+    use_same_menu_for_multiple_outlet = models.BooleanField(default=True)

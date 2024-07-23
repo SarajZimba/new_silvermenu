@@ -15,6 +15,15 @@ from django.views.generic import (
 
 from alice_menu.utils import DeleteMixin
 
+from django.shortcuts import render
+
+
+from django.contrib.auth.mixins import LoginRequiredMixin
+
+class IndexView(LoginRequiredMixin, TemplateView):
+    login_url = '/login/'
+    template_name = "index.html"
+
 
 class MenuTypeMixin(IsAdminMixin):
     model = MenuType
@@ -55,37 +64,6 @@ from itertools import chain
 from django.db.models import Q
 
 
-# class MenuList(ListView):
-# class MenuList(ListView, IsAdminMixin):
-# class MenuList(ListView):
-#     template_name = "menu/menu_list.html"
-#     context_object_name = "grouped_menus"  # Rename context variable
-
-#     def get_queryset(self):
-#         # Fetch all products with specific filters
-#         queryset = Menu.objects.filter(status=True, is_deleted=False)
-#         return queryset
-
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-        
-#         # Fetch all BudClass objects
-#         budclasses = MenuType.objects.all()
-
-#         # If a search query is provided, filter products based on the query
-#         search_query = self.request.GET.get("q")
-#         if search_query:
-#             queryset = Menu.objects.filter(Q(title__icontains=search_query, status=True, is_deleted=False)|Q(budclass__title__icontains=search_query, status=True, is_deleted=False)|Q(category__title__icontains=search_query, status=True, is_deleted=False))
-#             grouped_products = [(budclass.title, queryset.filter(budclass=budclass)) for budclass in budclasses]
-#         else:
-#             # Create a list of tuples with BudClass title and associated products
-#             grouped_products = [(budclass.title, budclass.product_set.filter(status=True, is_deleted=False)) for budclass in budclasses]
-        
-#         # Pass the grouped products to the template
-#         context[self.context_object_name] = grouped_products
-        
-#         return context
-
 
     
 from .forms import MenuForm
@@ -99,12 +77,18 @@ class MenuMixin(IsAdminMixin):
     success_url = reverse_lazy("menu_list")
     search_lookup_fields = [
         "item_name",
-        "description",
+        "menutype__title",
     ]
 
+from .models import FlagMenu
 class MenuList(MenuMixin, ListView):
     template_name = "menu/menu-list.html"
     queryset = Menu.objects.filter(status=True, is_deleted=False)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['flag_menu_active'] = FlagMenu.objects.first().use_same_menu_for_multiple_outlet
+        return context
 
 class MenuDetail(MenuMixin, DetailView):
     template_name = "menu/menu-detail.html"
@@ -146,80 +130,162 @@ from django.core.files.base import ContentFile
 class MenuUpload(View):
 
     def post(self, request):
-        file = request.FILES['file']
+        file = request.FILES.get('file', None)
+        if not file:
+            messages.error(request, 'Please Provide the correct file ')
+            return redirect(reverse_lazy("menu_create"))
+        
+        file_ext = file.name.split('.')[-1]
+        if file_ext not in ['xlsx', 'xls']:
+            messages.error(request, 'Format must be in xlsx or xls ')
+            return redirect(reverse_lazy("menu_create"))
+
         wb = load_workbook(file)
-
+        # try:
+        #     food_category = ProductCategory.objects.get(title='FOOD')
+        #     beverage_category= ProductCategory.objects.get(title='BEVERAGE')
+        #     others_category = ProductCategory.objects.get(title='OTHERS')
+        # except ProductCategory.DoesNotExist:
+        #     messages.error(request, 'Please Create Product Categories first')
+        #     return redirect(reverse_lazy("product_create"))
         excel_data = list()
-        # for sheet in wb.worksheets:
-        #     for row in sheet.iter_rows():
-
-        #         row_data = list()
-        #         for cell in row:
-        #             row_data.append(cell.value)
-        #         excel_data.append(row_data)
-
         for sheet in wb.worksheets:
-            for row_index, row in enumerate(sheet.iter_rows(), start=1):
-                # Skip the first row (index 0) which contains column headers
-                if row_index == 1:
-                    continue
-
+            for row in sheet.iter_rows():
                 row_data = list()
                 for cell in row:
                     row_data.append(cell.value)
+                row_data.insert(0, sheet.title)
                 excel_data.append(row_data)
-
-        product_create_error = []
+        
         for data in excel_data:
-            if not all(data):
+            if not all(data[0:9]):
                 continue
-            title = data[0].strip()
-            category_name = data[1].strip().lower()
-            price = data[2]
-            budclass_name = str(data[2]).strip() if isinstance(data[2], str) else str(data[2]) + " Shelf"
-            description = str(data[4]).strip() if isinstance(data[4], str) else str(data[4])
-            image = data[3]
-            parsed_url = urlparse(str(image))
-            image_without_query = urlunparse((parsed_url.scheme, parsed_url.netloc, parsed_url.path, '', '', ''))
+            if data[1].lower() == 'group':
+                continue
+            try:
+                product = Menu.objects.get(item_name__iexact=data[2].strip())
+                product.group = data[1].strip()
+                product.price = data[3]
+                # product.unit = data[4].strip()
+                # product.is_taxable = True if data[5].lower().strip() == "yes" else False
+                # product.is_produced = True if data[6].lower().strip() == "yes" else False
+                # product.reconcile = True if data[7].lower().strip() == "yes" else False
+                # product.is_billing_item = True if data[8].lower().strip() == "yes" else False
 
-            response = requests.get(image_without_query)
+                # if "food" in data[0].lower().strip():
+                #     product.type = food_category
+                # elif "beverage" in data[0].lower().strip():
+                #     product.type = beverage_category
+                # else:
+                #     product.type = others_category
+                product.save()
+            except Menu.DoesNotExist:
+                product = Menu()
+                product.group = data[1].strip()
+                product.item_name=data[2].strip()
+                product.price = data[3]
 
-            if MenuType.objects.filter(title__iexact=category_name).exists():
-                category = MenuType.objects.get(title__iexact=category_name)
-            else:
-                try:
-                    category = MenuType.objects.create(title=category_name)
-                except IntegrityError:
-                    category = MenuType.objects.get(title__iexact=category_name)
-
-            if response.status_code == 200:
-                image_content = ContentFile(response.content)        
-                product = Menu(
-                    category=category,
-                    title=title,
-                    price=price,
-                    description=description
-
-                )
-                # product.is_taxable = True if data[3].strip().lower() == "yes" else False  # Assuming the 4th column is for is_taxable
-                product.image.save(f"{title}_image.png", image_content, save=True)
-                try:
-                    product.save()
-                except Exception as e:
-                    print(e)
-                    product_create_error.append(product.title)
-            else:
-                print(f"Failed to download image from {image_without_query}")
-
-        if product_create_error:
-            messages.error(request, f"Error creating menus \n {product_create_error}", extra_tags='danger')
-            return redirect(reverse_lazy('product_list'))
-
-        messages.success(request, "Menus uploaded successfully", extra_tags='success')
-        return redirect(reverse_lazy('menu_list'))
+                product.save()
+        return redirect(reverse_lazy("menu_list"))
     
-from django.contrib.auth.mixins import LoginRequiredMixin
 
-class IndexView(LoginRequiredMixin, TemplateView):
-    login_url = '/login/'
-    template_name = "index.html"
+from .forms import MenuTypeForm
+class MenuTypeMixin(IsAdminMixin):
+    model = MenuType
+    form_class = MenuTypeForm
+    paginate_by = 50
+    queryset = MenuType.objects.filter(status=True, is_deleted=False, is_featured=True)
+    success_url = reverse_lazy("featured_product_list")
+    search_lookup_fields = [
+        "title",
+    ]
+
+
+class MenuTypeProductList(ListView):
+    template_name = "menupreset/menu_preset_list.html"
+    queryset = Menu.objects.filter(status=True, is_deleted=False)
+
+    def get(self, request, *args, **kwargs):
+        menu_preset_id = kwargs.get('id')
+        menutype = MenuType.objects.get(id=menu_preset_id)
+        menus_in_menu_preset = Menu.objects.filter(status=True, is_deleted=False, menutype=menutype)
+
+        context = {'object_list':menus_in_menu_preset, 'menutype': menutype.title, 'menutype_id':menutype.id}
+
+        return render(request, self.template_name, context)
+    
+
+
+
+
+
+
+
+# class FeaturedProductDetail(FeaturedProductMixin, DetailView):
+#     template_name = "product/featured_product_detail.html"
+
+
+# # class FeaturedProductCreate(FeaturedProductMixin, CreateView):
+# #     template_name = "create.html"
+    
+# from django.views.generic import CreateView
+# from .models import FeaturedProducts
+# import environ 
+# import os
+# from pathlib import Path
+# BASE_DIR = Path(__file__).resolve().parent.parent
+# env = environ.Env(DEBUG=(bool, False))
+# environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+
+from menu.models import MenuType
+from django.views.generic.edit import CreateView
+import json
+from django.contrib import messages
+from django.urls import reverse
+class MenuTypeProductCreate(MenuTypeMixin, CreateView):
+    queryset = MenuType.objects.all()
+    template_name = "menupreset/menu_preset_create.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # token = env('API_TOKEN')
+        context['products'] = Menu.objects.filter(is_deleted=False, status=True)  # Replace with actual products
+        # context['token'] = token
+        return context
+
+
+    def post(self, request, *args, **kwargs):
+        menutype_id = kwargs.get('id')
+        print("The menutype id is ", menutype_id)
+        selected_products_json = request.POST.get('selectedProducts')
+        selected_products = json.loads(selected_products_json)
+        # print("I am here")
+        print(selected_products_json)
+        print(selected_products)
+
+        for product in selected_products:
+            selected_product_id = product['selectedProductId']
+            selected_product_name = product['selectedProductName']
+
+            # if FeaturedProducts.objects.filter(product_id=selected_product_id, is_featured=True, is_deleted=False).exists():
+            #     messages.warning(request, f"Product '{selected_product_name}' is already featured.")
+            # else:
+            product = Menu.objects.get(id=selected_product_id)
+            menutype = MenuType.objects.get(pk=menutype_id)
+            product.menutype = menutype
+            product.save()
+        
+        return redirect(reverse('menu_preset_product_list', kwargs={'id': menutype_id}))
+
+
+class MenuTypeProductDelete(MenuTypeMixin, View):
+    def get(self, request, *args, **kwargs):
+        product_id = kwargs.get('id')
+        menutype_id = kwargs.get('menutype_id')
+        print(product_id)
+        menu = Menu.objects.get(pk=product_id)
+        menu.menutype = None
+        menu.save()
+
+        return redirect(reverse('menu_preset_product_list', kwargs={'id': menutype_id}))
+        

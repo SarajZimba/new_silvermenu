@@ -1,13 +1,13 @@
 
 {%extends 'base.html'%}
-{% block pagetitle %}MenuType List {% endblock %}
+{% block pagetitle %}MenuPreset List {% endblock %}
 {% block home %} {% url 'menu_type_list' %} {% endblock %}
-{% block title %}MenuType List {% endblock %}
+{% block title %}MenuPreset List {% endblock %}
 {% block content %}
- {% include 'components/title_bar.html' with title=' MenuType List ' create='/create/'  %}
+ {% include 'components/title_bar.html' with title=' MenuPreset List ' create='/create/'  %}
                 <div class="card">
 
-                {% include 'components/search_filter.html' with  search_title="Search MenuType" create_url="menu_type_create" create_button="Add MenuType" %} 
+                {% include 'components/search_filter.html' with  search_title="Search MenuPreset" create_url="menu_type_create" create_button="Add MenuPreset" %} 
 
 
     <div class="card-body pt-0">
@@ -38,7 +38,7 @@
              <tr class="odd" id="obj-{{object.pk}}">
               
 
-                <td>{{object.title}}</td>
+                <td><a href="{% url 'menu_preset_product_list' object.id %}">{{object.title}}</a></td>
                 <td>{{object.slug}}</td>
                 <td>{{object.description}}</td>
                 <td>{% include 'components/status.html' with status=object.status%}</td>
@@ -76,7 +76,7 @@
                 </td>
              </tr>
              {%empty%}
-             {% include 'components/empty.html' with  title="Menu Type"%}
+             {% include 'components/empty.html' with  title="Menu Preset"%}
               {% endfor %}
 
           </tbody>

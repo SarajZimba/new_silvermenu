@@ -3,7 +3,8 @@ from .order import urlpatterns as order_urlpatterns
 from .menu import urlpatterns as menu_urlpatterns
 from .customer import urlpatterns as customer_urlpatterns
 from .user import urlpatterns as user_urlpatterns
+from .bill_request import urlpatterns as bill_request_urpatterns
 
 urlpatterns = (
-    []  + menu_urlpatterns + customer_urlpatterns + order_urlpatterns + user_urlpatterns # +
+    []  + menu_urlpatterns + customer_urlpatterns + order_urlpatterns + user_urlpatterns + bill_request_urpatterns
 )

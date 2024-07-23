@@ -5,6 +5,14 @@
 {% block title %}Menu List {% endblock %}
 {% block content %}
  {% include 'components/title_bar.html' with title=' Item List ' create='/create/'  %}
+
+ <html>
+
+     <!-- Toggle Switch -->
+    <div class="mb-4 form-check form-switch">
+        <input class="form-check-input" type="checkbox" id="toggle-flag-menu" {% if flag_menu_active %}checked{% endif %}>
+        <label class="form-check-label" for="toggle-flag-menu">Use Same Menu for Multiple Outlets</label>
+    </div>
                 <div class="card">
 
                 {% include 'components/search_filter.html' with  search_title="Search Item" create_url="menu_create" create_button="Add Item" %} 
@@ -82,7 +90,7 @@
                                     <a onclick="remove({{object.pk}},'{% url "menu_delete" %}','{{object}}',)" class="menu-link px-3" id="obj"
                                     data-kt-customer-table-filter="delete_row">Delete</a>
                                 </div>
-'
+
                   <!--end::Menu item-->
                 </div>
                 </td>
@@ -105,7 +113,27 @@
 </div>
 
 <script>
+  document.getElementById('toggle-flag-menu').addEventListener('change', async function() {
+      const isChecked = this.checked;
+      const response = await fetch('/api/flagmenu/toggle/', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': '{{ csrf_token }}'  // Ensure you have CSRF token available in your template
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify({ active: isChecked })
+      });
+      if (response.ok) {
+          const data = await response.json();
+          console.log(data.message);  // Optionally handle success message or UI update
+          // Reload the page or update UI as needed
+      } else {
+          console.error('Failed to toggle flag menu');
+          this.checked = !isChecked;  // Revert toggle switch state on failure
+      }
+  });
 </script>
-
+</html>
 {% endblock %}
 

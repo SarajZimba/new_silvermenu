@@ -1,50 +1,80 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from menu.models import Menu
-from api.serializers.menu import MenuSerializerCreate, MenuSerializerList, MenuTypeSerializerList
-from menu.models import MenuType
+from api.serializers.menu import MenuSerializerCreate, MenuSerializerList, MenuTypeSerializerList, MenuTypeSerializerListOutletWise
+from menu.models import MenuType, FlagMenu
+
+# class MenuTypeWiseListView(APIView):
+#     def get(self, request, *args, **kwargs):
+#         outlet_name = kwargs.get('outlet_name')
+
+#         menutypes = MenuType.objects.filter(is_deleted=False, status=True)
+
+#         menutypeswithmenus = MenuTypeSerializerList(menutypes, many=True)
+
+#         return Response(menutypeswithmenus.data, 200)
 
 class MenuTypeWiseListView(APIView):
     def get(self, request, *args, **kwargs):
         outlet_name = kwargs.get('outlet_name')
 
-        menutypes = MenuType.objects.filter(is_deleted=False, status=True)
+        flagmenu = FlagMenu.objects.first()
+        if flagmenu:
+            flag = flagmenu.use_same_menu_for_multiple_outlet
+            if flag == True:
+                menutypes = MenuType.objects.filter(is_deleted=False, status=True)
 
-        menutypeswithmenus = MenuTypeSerializerList(menutypes, many=True)
+                menutypeswithmenus = MenuTypeSerializerList(menutypes, many=True)
 
-        return Response(menutypeswithmenus.data, 200)
+                return Response(menutypeswithmenus.data, 200)
+            else:
+                menutypes = MenuType.objects.filter(is_deleted=False, status=True)
 
-        # promotional_menus = Menu.objects.filter(status=True,is_deleted=False, outlet=outlet_name, is_promotional=True)[:5]
-        # todayspecial_menus = Menu.objects.filter(status=True,is_deleted=False, outlet=outlet_name, is_todayspecial=True)[:5]
-        # try:    
-        #     promotional_serializer = MenuSerializerList(promotional_menus, many=True)
-        #     todayspecial_serializer = MenuSerializerList(todayspecial_menus, many=True)
-        #     data = {
-        #         "promotional": promotional_serializer.data,
-        #         "todayspecial": todayspecial_serializer.data
-        #     }
-        #     return Response(data, 200)
+                # Create an empty list to store serialized data
+                serialized_data = []
+                
+                for menutype in menutypes:
+                    serializer = MenuTypeSerializerListOutletWise(menutype, context={'outlet_name': outlet_name})
+                    serialized_data.append(serializer.data)
 
-        # except Exception as e:
-        #     print(e)
-        #     return Response("Something went wrong", 400)
+                return Response(serialized_data)
+        else:
+            return Response("First create a flagmenu object in the admin panel", 400)
+
         
 class MenuListView(APIView):
     def get(self, request, *args, **kwargs):
         outlet_name = kwargs.get('outlet_name')
 
-        menus = Menu.objects.filter(status=True,is_deleted=False, outlet=outlet_name)
-        # promotional_menus = Menu.objects.filter(status=True,is_deleted=False, outlet=outlet_name, is_promotional=True)[:5]
-        # todayspecial_menus = Menu.objects.filter(status=True,is_deleted=False, outlet=outlet_name, is_todayspecial=True)[:5]
-        try:    
-            serializer = MenuSerializerList(menus, many=True)
-            # todayspecial_serializer = MenuSerializerList(todayspecial_menus, many=True)
-            data = serializer.data
-            return Response(data, 200)
+        flagmenu = FlagMenu.objects.first()
+        if flagmenu:
+            flag = flagmenu.use_same_menu_for_multiple_outlet
+            if flag == True:
+                menus = Menu.objects.filter(status=True, is_deleted=False)
+                try:    
+                    serializer = MenuSerializerList(menus, many=True)
+                    # todayspecial_serializer = MenuSerializerList(todayspecial_menus, many=True)
+                    data = serializer.data
+                    return Response(data, 200)
 
-        except Exception as e:
-            print(e)
-            return Response("Something went wrong", 400)
+                except Exception as e:
+                    print(e)
+                    return Response("Something went wrong", 400)
+            else:
+                menus = Menu.objects.filter(status=True,is_deleted=False, outlet=outlet_name)
+
+                try:    
+                    serializer = MenuSerializerList(menus, many=True)
+                    # todayspecial_serializer = MenuSerializerList(todayspecial_menus, many=True)
+                    data = serializer.data
+                    return Response(data, 200)
+
+                except Exception as e:
+                    print(e)
+                    return Response("Something went wrong", 400)
+        else:
+            return Response("First create a flagmenu object in the admin panel", 400)
+
         
 
 class IsPromotional(APIView):
@@ -62,20 +92,40 @@ class IsPromotional(APIView):
             print(e)
             return Response("Something went wrong", 400)
         
-class IsTodaySpecial(APIView):
+class MenuTypeProducts(APIView):
     def get(self, request, *args, **kwargs):
         outlet_name = kwargs.get('outlet_name')
+        menutype_id = kwargs.get('id')
+        menutype = MenuType.objects.get(pk=menutype_id)
 
-        menus = Menu.objects.filter(status=True, is_deleted=False, is_todayspecial=True, outlet=outlet_name)
 
-        try:
-            serializer = MenuSerializerList(menus, many=True)
-            data = serializer.data
-            return Response(data, 200)
+        flagmenu = FlagMenu.objects.first()
+        if flagmenu:
+            flag = flagmenu.use_same_menu_for_multiple_outlet
+            if flag == True:
+                menus = Menu.objects.filter(status=True, is_deleted=False)
+                try:    
+                    serializer = MenuSerializerList(menus, many=True)
+                    # todayspecial_serializer = MenuSerializerList(todayspecial_menus, many=True)
+                    data = serializer.data
+                    return Response(data, 200)
 
-        except Exception as e:
-            print(e)
-            return Response("Something went wrong", 400)
+                except Exception as e:
+                    print(e)
+                    return Response("Something went wrong", 400)
+            else:
+                menus = Menu.objects.filter(status=True, is_deleted=False, outlet=outlet_name, menutype=menutype)
+
+                try:
+                    serializer = MenuSerializerList(menus, many=True)
+                    data = serializer.data
+                    return Response(data, 200)
+
+                except Exception as e:
+                    print(e)
+                    return Response("Something went wrong", 400)
+        else:
+            return Response("First create a flagmenu object in the admin panel", 400)
 
 
 
@@ -207,3 +257,16 @@ class MenuDetailView(APIView):
             return Response("Could not find the menu", 400)
         serializer = MenuSerializerList(menu)
         return Response(serializer.data, 200)            
+
+
+from menu.models import FlagMenu
+
+class FlagMenuToggleAPIView(APIView):
+    def post(self, request, format=None):
+        try:
+            flag_menu = FlagMenu.objects.first()
+            flag_menu.use_same_menu_for_multiple_outlet = not flag_menu.use_same_menu_for_multiple_outlet
+            flag_menu.save()
+            return Response({'message': 'Toggle successful'}, status=status.HTTP_200_OK)
+        except FlagMenu.DoesNotExist:
+            return Response({'message': 'FlagMenu not found'}, status=status.HTTP_404_NOT_FOUND)

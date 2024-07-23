@@ -209,6 +209,12 @@ class OrderSessionTotal(APIView):
 class CancelOrderAPIView(APIView):
     def get(self, request, *args, **kwargs):
         order_id = kwargs.get('order_id')
+        desired_timezone = pytz.timezone('Asia/Kathmandu')
+        current_datetime = timezone.now().astimezone(desired_timezone)
+
+        # Format the datetime as a string
+        current_datetime_str = current_datetime.strftime('%Y-%m-%d %I:%M %p')
+        current_date_str = current_datetime.strftime('%Y-%m-%d')
         try:
             order = Order.objects.get(pk=order_id)
             order.state = "Cancelled"
@@ -217,7 +223,6 @@ class CancelOrderAPIView(APIView):
             return Response("Order cancelled successfully", 200)
         except Exception as e:
             return Response("No order found having that id", 400)
-
 
 
 
