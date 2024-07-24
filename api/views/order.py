@@ -9,6 +9,7 @@ import pytz
 from rest_framework.permissions import AllowAny
 from django.db.models import Q
 from order.utils import send_delivery_notification
+from menu.models import Menu
 
 class OrderCreateAPIView(APIView):
     permission_classes = [AllowAny]
@@ -39,7 +40,7 @@ class OrderCreateAPIView(APIView):
                 if order_details_serializer.is_valid():
                     order_details_serializer.save()
 
-                    send_delivery_notification(outlet_name)
+                    send_delivery_notification(outlet_name, table_no)
 
                     return Response(order_details_serializer.data, status=status.HTTP_201_CREATED)
                 
@@ -209,12 +210,6 @@ class OrderSessionTotal(APIView):
 class CancelOrderAPIView(APIView):
     def get(self, request, *args, **kwargs):
         order_id = kwargs.get('order_id')
-        desired_timezone = pytz.timezone('Asia/Kathmandu')
-        current_datetime = timezone.now().astimezone(desired_timezone)
-
-        # Format the datetime as a string
-        current_datetime_str = current_datetime.strftime('%Y-%m-%d %I:%M %p')
-        current_date_str = current_datetime.strftime('%Y-%m-%d')
         try:
             order = Order.objects.get(pk=order_id)
             order.state = "Cancelled"
@@ -224,6 +219,56 @@ class CancelOrderAPIView(APIView):
         except Exception as e:
             return Response("No order found having that id", 400)
 
+from collections import defaultdict
+from api.serializers.order import RatingOrderDetailsSerializer
+class GiveItemsfromTable(APIView):
+    def get(self, request, *args, **kwargs):
+
+        outlet_name = kwargs.get('outlet_name')
+        table_no = kwargs.get('table_no')
+        # print(f'oulet_order {outlet_order}')
+        orders = Order.objects.filter(Q(outlet=outlet_name) & Q(table_no=table_no) & ~Q(state="Completed") & ~Q(state="Cancelled"))
 
 
+        orderdetails = OrderDetails.objects.filter(order__in=orders)
 
+        item_groups = defaultdict(lambda: {
+            'productId': None,
+            'itemName': None,
+            'total': 0,
+        })
+        
+        for order_detail in orderdetails:
+            item_key = order_detail.itemName  # Assuming this matches the field name in OrderDetails
+            print(item_key)
+            item_groups[item_key]['productId'] = Menu.objects.get(item_name = order_detail.itemName).id
+            item_groups[item_key]['itemName'] = order_detail.itemName
+            item_groups[item_key]['total'] += float(order_detail.total)  # Assuming total is a string
+        
+        combined_items = []
+        for key, value in item_groups.items():
+            combined_items.append({
+                'productId': value['productId'],
+                'itemName': value['itemName'],
+                'total': str(value['total']),  # Convert total back to string if needed
+            })
+
+
+        return Response(combined_items, 200)
+    
+from django.db.models import Q
+class ReviewPending(APIView):
+    def get(self, request, *args, **kwargs):
+        table_no = kwargs.get('table_no')
+        outlet = kwargs.get('outlet_name')
+        flag = True
+        if Order.objects.filter(Q(table_no=table_no) & Q(outlet=outlet) & (Q(state='Pending') | Q(state='Prpearing'))).exists():
+            flag=False
+        else:
+            flag=True
+        flag_data = {
+            "flag":flag
+        }
+        return Response(flag_data, 200)
+
+    

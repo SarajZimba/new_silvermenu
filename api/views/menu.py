@@ -270,3 +270,16 @@ class FlagMenuToggleAPIView(APIView):
             return Response({'message': 'Toggle successful'}, status=status.HTTP_200_OK)
         except FlagMenu.DoesNotExist:
             return Response({'message': 'FlagMenu not found'}, status=status.HTTP_404_NOT_FOUND)
+
+class MenuListViewAllOutlet(APIView):
+    def get(self, request, *args, **kwargs):
+
+        menus = Menu.objects.filter(status=True,is_deleted=False)
+        try:    
+            serializer = MenuSerializerList(menus, many=True)
+            data = serializer.data
+            return Response(data, 200)
+
+        except Exception as e:
+            print(e)
+            return Response("Something went wrong", 400)

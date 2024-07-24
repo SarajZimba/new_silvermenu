@@ -1,9 +1,10 @@
 from django.urls import path
-from api.views.menu import MenuCreateAPIView, IsPromotional, MenuTypeProducts, ImageByteView, MenuListView, MenuTypeWiseListView, MenuSearchAPIView, MenuDetailView
+from api.views.menu import MenuCreateAPIView, IsPromotional, MenuTypeProducts, ImageByteView, MenuListView, MenuTypeWiseListView, MenuSearchAPIView, MenuDetailView, MenuListViewAllOutlet
 
 urlpatterns = [
     path("menu-create/<str:outlet_name>", MenuCreateAPIView.as_view(), name="menu-create"),
     path("menu-list/<str:outlet_name>", MenuListView.as_view(), name="menu-list"), 
+    path("menu-list-alloutlet/", MenuListViewAllOutlet.as_view(), name="menu-list"), 
     path("menu-typewise-list/<str:outlet_name>", MenuTypeWiseListView.as_view(), name="menu-typewise-list"), 
     path("menu-type-products/<str:outlet_name>/<int:id>", MenuTypeProducts.as_view(), name="menu-type"),
     # path("menu-promotional/<str:outlet_name>/<int", IsPromotional.as_view(), name="menu-promotional"),

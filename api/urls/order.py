@@ -15,4 +15,14 @@ urlpatterns += [
     path('order-session/<str:outlet_name>/<int:table_no>/', OrderSessionTotal.as_view(), name='order-session'),
 ] 
 
+from api.views.order import GiveItemsfromTable
+urlpatterns += [
+    path('table-items/<str:outlet_name>/<int:table_no>/', GiveItemsfromTable.as_view(), name='table-items'),
+] 
 
+
+from api.views.order import ReviewPending
+
+urlpatterns += [
+    path('is-pending/<str:outlet_name>/<int:table_no>/',ReviewPending.as_view(), name='is-session-comleted'),
+] 

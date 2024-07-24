@@ -31,7 +31,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 ]
 
-CUSTOM_APPS = ["api", "user", "order", "menu"]
+CUSTOM_APPS = ["api", "user", "order", "menu", "rating"]
 
 THIRD_PARTY_APPS = ["rest_framework" , "rest_framework_simplejwt",
     "corsheaders",]

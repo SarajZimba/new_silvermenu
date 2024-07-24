@@ -93,7 +93,7 @@ def send_delivery_notification(sender, instance, created, **kwargs):
                             
                 order_dict["products"] = json.dumps(order_dict["products"])
 
-                final_msg = f"You have a new order "
+                final_msg = f"You have a new order in table {table_no}"
 
                 if token is not None or token != '':
                     print(f"before {order_dict}")
@@ -151,9 +151,9 @@ def send_delivery_notification(sender, instance, created, **kwargs):
                     order_dict["start_time"] = str(start_time)
                 final_msg = ""
                 if instance.is_billrequest == True:
-                    final_msg = f"You have a new bill request in {table_no} "
+                    final_msg = f"You have a new bill request from {table_no} "
                 if instance.is_waitercalling == True:
-                    final_msg = f"Waiter calling in {table_no}"
+                    final_msg = f"You have a waiter request from  {table_no}"
 
                 if token is not None or token != '':
                     print(f"before {order_dict}")
