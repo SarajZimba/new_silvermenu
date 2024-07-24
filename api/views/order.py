@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from api.serializers.order import OrderDetailsSerializer,OrderSerializer, CustomOrderWithOrderDetailsSerializer
 from django.db import transaction
-from order.models import Order, OrderDetails
+from order.models import Order, OrderDetails, BillRequest
 from django.utils import timezone
 import pytz
 from rest_framework.permissions import AllowAny
@@ -257,15 +257,24 @@ class GiveItemsfromTable(APIView):
         return Response(combined_items, 200)
     
 from django.db.models import Q
+from rating.models import tblRatings
 class ReviewPending(APIView):
     def get(self, request, *args, **kwargs):
         table_no = kwargs.get('table_no')
         outlet = kwargs.get('outlet_name')
         flag = True
-        if Order.objects.filter(Q(table_no=table_no) & Q(outlet=outlet) & (Q(state='Pending') | Q(state='Prpearing'))).exists():
-            flag=False
+        order_queryset = Order.objects.filter(Q(table_no=table_no) & Q(outlet=outlet) & (Q(state='Pending') | Q(state='Cooked') | Q(state='Accepted')))
+        if order_queryset.exists():
+            order = order_queryset.first()
+            if BillRequest.objects.filter(order=order).exists():
+                if tblRatings.objects.filter(order = order).exists():
+                    flag=False
+                else:
+                    flag = True
+            else:
+                flag = False
         else:
-            flag=True
+            flag=False
         flag_data = {
             "flag":flag
         }

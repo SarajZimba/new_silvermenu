@@ -112,6 +112,8 @@ class BillRequest(BaseModel):
     outlet = models.CharField(max_length = 100, null=True)
     completed_time = models.CharField(max_length=100, null=True, blank=True)
     is_completed = models.BooleanField(default=False)
+    order = models.OneToOneField(Order, models.CASCADE, null=True, blank=True)
+
 
 @receiver(post_save, sender=BillRequest)
 def send_delivery_notification(sender, instance, created, **kwargs):

@@ -3,6 +3,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from api.serializers.rating import tblitemRatingsSerializer, tblRatingSerializer
 from django.db import transaction
+from order.models import Order
+from django.db.models import Q
 
 
 class RatingCreateAPIView(APIView):
@@ -10,7 +12,15 @@ class RatingCreateAPIView(APIView):
     @transaction.atomic
     def post(self, request, *args, **kwargs):
         data = request.data
+        table_no = data['table_no']
+        order = Order.objects.filter(Q(table_no=table_no) & (Q(state='Pending') | Q(state='Cooked')|Q(state='Accepted'))).first()
+        if order:
+            data['order'] = order.id
+        else:
+            return Response({"detail":"No order created first"}, 400)
 
+        if tblRatings.objects.filter(order=order).exists():
+            return Response({"detail": "Review already exists for this order"}, 400)
         tblitemRatings = data.pop('tblitemRatings', [])
         tblRatingsserializer = tblRatingSerializer(data=data)
         if tblRatingsserializer.is_valid():

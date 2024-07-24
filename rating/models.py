@@ -18,7 +18,7 @@ class tblRatings(BaseModel):
     cleanliness_rating = models.FloatField()
     overall_rating = models.FloatField()
     review = models.TextField(null=True, blank=True)
-    order = models.ForeignKey(Order, models.CASCADE, null=True, blank=True)
+    order = models.OneToOneField(Order, models.CASCADE, null=True, blank=True)
 
 class tblitemRatings(BaseModel):
     tblrating = models.ForeignKey(tblRatings, models.CASCADE, null=True, blank=True)
@@ -48,4 +48,10 @@ def send_rating_email(sender, instance, created, **kwargs):
 
 
 
-# class MailRecipient(BaseModel):
+class MailRecipient(models.Model):
+    name = models.CharField(max_length=100)
+    email = models.EmailField(max_length=100)
+    status = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
