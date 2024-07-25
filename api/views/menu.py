@@ -103,7 +103,7 @@ class MenuTypeProducts(APIView):
         if flagmenu:
             flag = flagmenu.use_same_menu_for_multiple_outlet
             if flag == True:
-                menus = Menu.objects.filter(status=True, is_deleted=False)
+                menus = Menu.objects.filter(status=True, is_deleted=False, menutype=menutype)
                 try:    
                     serializer = MenuSerializerList(menus, many=True)
                     # todayspecial_serializer = MenuSerializerList(todayspecial_menus, many=True)

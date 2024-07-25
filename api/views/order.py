@@ -27,7 +27,7 @@ class OrderCreateAPIView(APIView):
         table_no = request.data['table_no']
         outlet_name = request.data['outlet']
         order_not_completed_in_table = Order.objects.filter(
-            Q(table_no=table_no) & ~Q(state="Completed") &Q(outlet=outlet_name)
+            Q(table_no=table_no) & ~Q(state="Completed") &  ~Q(state="Cancelled") &Q(outlet=outlet_name)
         ).order_by('id')
 
         if order_not_completed_in_table.exists():
@@ -128,11 +128,11 @@ class OrderCreateAPIView(APIView):
         else:
             return Response(order_details_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-    
+from django.db.models import Q    
 class OrderListView(APIView):
     def get(self, request, *args, **kwargs):
         outlet_name = kwargs.get('outlet_name')
-        orders = Order.objects.filter(outlet=outlet_name, state="Pending")
+        orders = Order.objects.filter(Q(outlet=outlet_name) & ~Q(state="Completed") & ~Q(state = "Cancelled"))
 
         serializer = CustomOrderWithOrderDetailsSerializer(orders, many=True)
 
@@ -216,6 +216,17 @@ class CancelOrderAPIView(APIView):
             order.status = False
             order.save()
             return Response("Order cancelled successfully", 200)
+        except Exception as e:
+            return Response("No order found having that id", 400)
+        
+class CompleteOrderAPIView(APIView):
+    def get(self, request, *args, **kwargs):
+        order_id = kwargs.get('order_id')
+        try:
+            order = Order.objects.get(pk=order_id)
+            order.state = "Completed"
+            order.save()
+            return Response("Order completed successfully", 200)
         except Exception as e:
             return Response("No order found having that id", 400)
 

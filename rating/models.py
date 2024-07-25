@@ -34,17 +34,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from .models import tblRatings
 
-@receiver(post_save, sender=tblRatings)
-def send_rating_email(sender, instance, created, **kwargs):
-    if created:
-        subject = 'New Rating Submitted'
-        message = f'Customer Name: {instance.customer_name}\n' \
-                  f'Overall Rating: {instance.overall_rating}\n' \
-                  f'Review: {instance.review}'
-        from_email = settings.EMAIL_HOST_USER  
-        recipient_list = ['xyz@gmail.com']  
-        
-        send_mail(subject, message, from_email, recipient_list)
+
 
 
 

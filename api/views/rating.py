@@ -5,6 +5,7 @@ from api.serializers.rating import tblitemRatingsSerializer, tblRatingSerializer
 from django.db import transaction
 from order.models import Order
 from django.db.models import Q
+from rating.mail import create_profile_for_email
 
 
 class RatingCreateAPIView(APIView):
@@ -33,9 +34,13 @@ class RatingCreateAPIView(APIView):
         tblitemRatingSerializer = tblitemRatingsSerializer(data=tblitemRatings, many=True)
         if tblitemRatingSerializer.is_valid():
             tblitemRatingSerializer.save()
+
         else:
             return Response("tblitemRatings data is not valid", 400)
-
+        try:
+            create_profile_for_email(tblRating)
+        except Exception as e:
+            print(e)
         return Response(tblRatingsserializer.data, 201)
 
             

@@ -165,3 +165,26 @@ def send_delivery_notification(sender, instance, created, **kwargs):
                     print("The token is None")
         else:
             print(f"No active users in the outlet {outlet}")
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+import hashlib
+class HashValue(BaseModel):
+    outlet = models.CharField(max_length=100, null=True, blank=True)
+    table = models.IntegerField()
+    hash_value = models.CharField(max_length=64, blank=True, null=True) 
+
+    def save(self, *args, **kwargs):
+        self.hash_value = self.generate_hash()
+        super().save(*args, **kwargs)
+
+    def generate_hash(self):
+        hash_object = hashlib.sha256()
+        hash_object.update(f"{self.outlet}{self.table}".encode('utf-8'))
+        return hash_object.hexdigest()
+
+@receiver(post_save, sender=HashValue)
+def update_hash_value(sender, instance, created, **kwargs):
+    if created:
+        instance.hash_value = instance.generate_hash()
+        instance.save()
