@@ -88,6 +88,7 @@ class MenuList(MenuMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['flag_menu_active'] = FlagMenu.objects.first().use_same_menu_for_multiple_outlet
+        context['auto_order_active'] = FlagMenu.objects.first().autoaccept_order
         return context
 
 class MenuDetail(MenuMixin, DetailView):

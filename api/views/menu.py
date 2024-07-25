@@ -267,7 +267,19 @@ class FlagMenuToggleAPIView(APIView):
             flag_menu = FlagMenu.objects.first()
             flag_menu.use_same_menu_for_multiple_outlet = not flag_menu.use_same_menu_for_multiple_outlet
             flag_menu.save()
-            return Response({'message': 'Toggle successful'}, status=status.HTTP_200_OK)
+            return Response({'message': 'Use same Menu Toggle successful'}, status=status.HTTP_200_OK)
+        except FlagMenu.DoesNotExist:
+            return Response({'message': 'FlagMenu not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+from menu.models import FlagMenu
+
+class OrderAutoAcceptView(APIView):
+    def post(self, request, format=None):
+        try:
+            flag_menu = FlagMenu.objects.first()
+            flag_menu.autoaccept_order = not flag_menu.autoaccept_order
+            flag_menu.save()
+            return Response({'message': 'Auto AcceptOrder Toggle successful'}, status=status.HTTP_200_OK)
         except FlagMenu.DoesNotExist:
             return Response({'message': 'FlagMenu not found'}, status=status.HTTP_404_NOT_FOUND)
 

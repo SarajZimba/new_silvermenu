@@ -34,3 +34,11 @@ urlpatterns += [
     path('flagmenu/toggle/', FlagMenuToggleAPIView.as_view(), name='flagmenu-toggle'),
 ]
 
+
+from django.urls import path
+from api.views.menu import OrderAutoAcceptView
+
+urlpatterns += [
+    path('autoaccept-order/toggle/', OrderAutoAcceptView.as_view(), name='autoacceptorder-toggle'),
+]
+
