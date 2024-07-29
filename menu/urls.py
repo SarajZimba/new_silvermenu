@@ -43,3 +43,25 @@ path('menu_preset_product/create/<int:id>', MenuTypeProductCreate.as_view(), nam
 path('menu_preset_product/remove/<int:id>/<int:menutype_id>', MenuTypeProductDelete.as_view(), name='menu_preset_product_remove'),
 
 ]
+
+
+from .views import (
+    OrganizationCreate,
+    OrganizationDelete,
+    OrganizationDetail,
+    OrganizationUpdate,
+)
+urlpatterns += [
+    path("organization/", OrganizationDetail.as_view(), name="organization_detail"),
+    path(
+        "organization/create/", OrganizationCreate.as_view(), name="organization_create"
+    ),
+    path(
+        "organization/update/",
+        OrganizationUpdate.as_view(),
+        name="organization_update",
+    ),
+    path(
+        "organization/delete", OrganizationDelete.as_view(), name="organization_delete"
+    ),
+]

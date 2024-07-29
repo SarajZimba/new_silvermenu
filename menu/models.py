@@ -75,3 +75,6 @@ class Menu(BaseModel):
 class FlagMenu(models.Model):
     use_same_menu_for_multiple_outlet = models.BooleanField(default=True)
     autoaccept_order = models.BooleanField(default=False)
+
+class Organization(BaseModel):
+    loyalty_percentage = models.FloatField(default=0.0)
