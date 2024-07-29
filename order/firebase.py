@@ -23,6 +23,7 @@ def send_notification(token, title, body, holder):
             data=holder,
             token=token
         )
+        print(holder)
         response = messaging.send(message)
         if response and 'error' in response:
             # Handle error

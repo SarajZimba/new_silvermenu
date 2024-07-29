@@ -35,74 +35,77 @@ from user.models import UserLogin
 from django.dispatch import receiver
 from .firebase import send_notification
 
-@receiver(post_save, sender=Order)
-def send_delivery_notification(sender, instance, created, **kwargs):
-    print("I am inside")
-    if created:
-        outlet=instance.outlet
-        active_users = UserLogin.objects.filter(outlet=outlet)
+# @receiver(post_save, sender=Order)
+# def send_delivery_notification(sender, instance, created, **kwargs):
+#     print("I am inside")
+#     if created:
+#         outlet=instance.outlet
+#         active_users = UserLogin.objects.filter(outlet=outlet)
         
-        if active_users:
-            for user in active_users:
+#         if active_users:
+#             for user in active_users:
 
-                order_type = instance.type if instance.type else ""
-                order_id = instance.id 
-                table_no = instance.table_no if instance.table_no else ""
-                dateTime = instance.start_time if instance.start_time else ""
-                employee = instance.employee if instance.employee else ""
-                noOfGuest = instance.noofguest if instance.noofguest else ""
-                token = user.device_token
-                outlet = instance.outlet if instance.outlet else "" 
+#                 order_type = instance.type if instance.type else ""
+#                 order_id = instance.id 
+#                 table_no = instance.table_no if instance.table_no else ""
+#                 dateTime = instance.start_time if instance.start_time else ""
+#                 employee = instance.employee if instance.employee else ""
+#                 noOfGuest = instance.noofguest if instance.noofguest else ""
+#                 token = user.device_token
+#                 outlet = instance.outlet if instance.outlet else "" 
 
-                order_dict = {}
+#                 order_dict = {}
                             
-                if order_type is not None:
-                    order_dict["orderType"] = order_type
+#                 if order_type is not None:
+#                     order_dict["orderType"] = order_type
                                 
-                if order_id is not None:
-                    order_dict["id"] = str(order_id)
+#                 if order_id is not None:
+#                     order_dict["id"] = str(order_id)
 
-                if table_no is not None:
-                    order_dict["tableNo"] = str(table_no)
+#                 if table_no is not None:
+#                     order_dict["tableNo"] = str(table_no)
 
-                if dateTime is not None:
-                    order_dict["dateTime"] = dateTime
+#                 if dateTime is not None:
+#                     order_dict["dateTime"] = dateTime
 
-                if employee is not None:
-                    order_dict["Employee"] = employee
+#                 if employee is not None:
+#                     order_dict["Employee"] = employee
 
-                if noOfGuest is not None:
-                    order_dict["noOfGuest"] = str(noOfGuest)
+#                 if noOfGuest is not None:
+#                     order_dict["noOfGuest"] = str(noOfGuest)
 
-                order_dict["products"] = []
+#                 order_dict["products"] = []
                             
-                for order_details in instance.orderdetails_set.all():
+#                 for order_details in instance.orderdetails_set.all():
             
-                    itemName = order_details.itemName if order_details.itemName else ""
-                    quantity = order_details.quantity if order_details.quantity else ""
-                    total = order_details.total if order_details.total else 0
+#                     itemName = order_details.itemName if order_details.itemName else ""
+#                     quantity = order_details.quantity if order_details.quantity else ""
+#                     total = order_details.total if order_details.total else 0
                                 
-                    products_dict = {}
-                    if itemName is not None:
-                        products_dict['itemName'] = itemName
-                    if quantity is not None: 
-                        products_dict['quantity'] = quantity
-                    if total is not None:
-                        products_dict['qty'] = str(total)
-                    order_dict["products"].append(products_dict)
+#                     products_dict = {}
+#                     if itemName is not None:
+#                         products_dict['itemName'] = itemName
+#                     if quantity is not None: 
+#                         products_dict['quantity'] = quantity
+#                     if total is not None:
+#                         products_dict['qty'] = str(total)
+#                     order_dict["products"].append(products_dict)
                             
-                order_dict["products"] = json.dumps(order_dict["products"])
+#                 order_dict["products"] = json.dumps(order_dict["products"])
 
-                final_msg = f"You have a new order in table {table_no}"
+#                 final_msg = f"You have a new order in table {table_no}"
 
-                if token is not None or token != '':
-                    print(f"before {order_dict}")
-                    send_notification(token, "Order needs to be received", final_msg, order_dict)
-                    print(f"after {order_dict}")
-                else:
-                    print("The token is None")
-        else:
-            print(f"No active users in the outlet {outlet}")
+#                 if token is not None or token != '':
+#                     print(f"before {order_dict}")
+#                     send_notification(token, "Order needs to be received", final_msg, order_dict)
+#                     print(f"after {order_dict}")
+#                 else:
+#                     print("The token is None")
+#         else:
+#             print(f"No active users in the outlet {outlet}")
+
+
+# @receiver(post_save, sender=Order)
 
 
 class BillRequest(BaseModel):
@@ -188,3 +191,4 @@ def update_hash_value(sender, instance, created, **kwargs):
     if created:
         instance.hash_value = instance.generate_hash()
         instance.save()
+

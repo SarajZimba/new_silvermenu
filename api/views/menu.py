@@ -279,7 +279,7 @@ class OrderAutoAcceptView(APIView):
             flag_menu = FlagMenu.objects.first()
             flag_menu.autoaccept_order = not flag_menu.autoaccept_order
             flag_menu.save()
-            return Response({'message': 'Auto AcceptOrder Toggle successful'}, status=status.HTTP_200_OK)
+            return Response({'auto_accept': flag_menu.autoaccept_order}, status=status.HTTP_200_OK)
         except FlagMenu.DoesNotExist:
             return Response({'message': 'FlagMenu not found'}, status=status.HTTP_404_NOT_FOUND)
 

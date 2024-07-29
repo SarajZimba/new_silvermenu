@@ -29,7 +29,7 @@ class MenuTypeMixin(IsAdminMixin):
     model = MenuType
     form_class = MenuTypeForm
     paginate_by = 50    
-    queryset = MenuType.objects.filter(status=True, is_deleted=False)
+    queryset = MenuType.objects.all()
     success_url = reverse_lazy("menu_type_list")
     search_lookup_fields = [
         "title",
@@ -39,7 +39,7 @@ class MenuTypeMixin(IsAdminMixin):
 
 class MenuTypeList(MenuTypeMixin, ListView):
     template_name = "menutype/menutype-list.html"
-    queryset = MenuType.objects.filter(status=True, is_deleted=False)
+    queryset = MenuType.objects.all()
 
 
 class MenuTypeDetail(MenuTypeMixin, DetailView):
@@ -190,16 +190,16 @@ class MenuUpload(View):
         return redirect(reverse_lazy("menu_list"))
     
 
-from .forms import MenuTypeForm
-class MenuTypeMixin(IsAdminMixin):
-    model = MenuType
-    form_class = MenuTypeForm
-    paginate_by = 50
-    queryset = MenuType.objects.filter(status=True, is_deleted=False, is_featured=True)
-    success_url = reverse_lazy("featured_product_list")
-    search_lookup_fields = [
-        "title",
-    ]
+# from .forms import MenuTypeForm
+# class MenuTypeMixin(IsAdminMixin):
+#     model = MenuType
+#     form_class = MenuTypeForm
+#     paginate_by = 50
+#     queryset = MenuType.objects.filter(status=True, is_deleted=False, is_featured=True)
+#     success_url = reverse_lazy("featured_product_list")
+#     search_lookup_fields = [
+#         "title",
+#     ]
 
 
 class MenuTypeProductList(ListView):

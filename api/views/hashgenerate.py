@@ -19,7 +19,7 @@ class HashAPIView(APIView):
 
                 hashvalue = hashvalue_obj.hash_value
 
-                return Response({"hashvalue": f"backend.silverlimenu.silverlinepos.com/{hashvalue}"}, 200)
+                return Response({"hashvalue": hashvalue}, 200)
             else:
                 return Response(e, 400)
         except Exception as e:

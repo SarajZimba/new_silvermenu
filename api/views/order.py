@@ -10,6 +10,7 @@ from rest_framework.permissions import AllowAny
 from django.db.models import Q
 from order.utils import send_delivery_notification
 from menu.models import Menu
+from order.utils import send_order_notification, is_update_pending
 
 class OrderCreateAPIView(APIView):
     permission_classes = [AllowAny]
@@ -40,13 +41,15 @@ class OrderCreateAPIView(APIView):
                 if order_details_serializer.is_valid():
                     order_details_serializer.save()
 
-                    send_delivery_notification(outlet_name, table_no)
+                # flag = is_update_pending(order)
+                    # send_delivery_notification(outlet_name, table_no)
+                send_order_notification(order_not_completed_in_table.last(), "Pending")
 
-                    return Response(order_details_serializer.data, status=status.HTTP_201_CREATED)
+                return Response(order_details_serializer.data, status=status.HTTP_201_CREATED)
                 
-                else:
-                    # order.delete()
-                    return Response(order_details_serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
+                # else:
+                #     # order.delete()
+                #     return Response(order_details_serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
             elif order_not_completed_in_table.last().state == "Accepted":             
                 data['outlet_order'] = order_not_completed_in_table.last().outlet_order
                 order_serializer = OrderSerializer(data=data)
@@ -59,12 +62,13 @@ class OrderCreateAPIView(APIView):
                     order_details_serializer = OrderDetailsSerializer(data=order_details_data, many=True)
                     if order_details_serializer.is_valid():
                         order_details_serializer.save()
-
-                        return Response(order_serializer.data, status=status.HTTP_201_CREATED)
                     
-                    else:
-                        order.delete()
-                        return Response(order_details_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                    send_order_notification(order, "Accepted")
+                    return Response(order_serializer.data, status=status.HTTP_201_CREATED)
+                    
+                    # else:
+                    #     order.delete()
+                    #     return Response(order_details_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
         else:
             order_serializer = OrderSerializer(data=data)
@@ -77,12 +81,12 @@ class OrderCreateAPIView(APIView):
                 order_details_serializer = OrderDetailsSerializer(data=order_details_data, many=True)
                 if order_details_serializer.is_valid():
                     order_details_serializer.save()
-
-                    return Response(order_serializer.data, status=status.HTTP_201_CREATED)
+                send_order_notification(order, "Normal")
+                return Response(order_serializer.data, status=status.HTTP_201_CREATED)
                 
-                else:
-                    order.delete()
-                    return Response(order_details_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                # else:
+                #     order.delete()
+                #     return Response(order_details_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
             
         # return Response(order_serializer.errors, status=status.HTTP_400_BAD_REQUEST)

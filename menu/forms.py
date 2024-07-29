@@ -3,18 +3,18 @@ from django import forms
 from .models import Menu, MenuType
 from alice_menu.forms import BaseForm
 
-class MenuTypeForm(BaseForm, forms.ModelForm):
-    class Meta:
-        model = MenuType
-        fields = "__all__"
-        exclude = [
-            "is_deleted",
-            "status",
-            "deleted_at",
-            "sorting_order",
-            "slug",
-            "is_featured",
-        ]
+# class MenuTypeForm(BaseForm, forms.ModelForm):
+#     class Meta:
+#         model = MenuType
+#         fields = "__all__"
+#         exclude = [
+#             "is_deleted",
+#             "status",
+#             "deleted_at",
+#             "sorting_order",
+#             "slug",
+#             "is_featured",
+#         ]
 
 
 class MenuForm(BaseForm, forms.ModelForm):
@@ -77,7 +77,6 @@ class MenuTypeForm(BaseForm, forms.ModelForm):
         fields = "__all__"
         exclude = [
             "is_deleted",
-            "status",
             "deleted_at",
             "sorting_order",
             "slug",
